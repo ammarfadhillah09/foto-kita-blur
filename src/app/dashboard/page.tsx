@@ -144,7 +144,7 @@ export default function DashboardPage() {
       return;
     }
 
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
     if (!ctx) {
       animationFrameRef.current = requestAnimationFrame(predict);
       return;
@@ -169,6 +169,9 @@ export default function DashboardPage() {
 
     // 3. Draw the video frame
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    // 4. Reset filter immediately (Fixes Safari lingering filter bugs)
+    ctx.filter = 'none';
     ctx.restore();
 
     // Run detection
@@ -395,7 +398,7 @@ export default function DashboardPage() {
 
           {/* Camera Feed Container */}
           <div className="w-full aspect-[3/4] sm:aspect-[4/3] md:aspect-video bg-gray-900 rounded-3xl border border-white/10 relative overflow-hidden shadow-2xl shadow-black/50 z-10">
-            <video ref={videoRef} playsInline muted className="hidden" />
+            <video ref={videoRef} autoPlay playsInline muted webkit-playsinline="true" hidden className="hidden" />
 
             <canvas
               ref={canvasRef}
