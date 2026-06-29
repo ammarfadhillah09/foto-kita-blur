@@ -394,7 +394,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Camera Feed Container */}
-          <div className="w-full aspect-video bg-gray-900 rounded-3xl border border-white/10 relative overflow-hidden shadow-2xl shadow-black/50 z-10">
+          <div className="w-full aspect-[3/4] sm:aspect-[4/3] md:aspect-video bg-gray-900 rounded-3xl border border-white/10 relative overflow-hidden shadow-2xl shadow-black/50 z-10">
             <video ref={videoRef} playsInline muted className="hidden" />
 
             <canvas
@@ -433,7 +433,7 @@ export default function DashboardPage() {
 
             {/* Recording indicator */}
             {isRecording && (
-              <div className="absolute top-6 left-6 px-4 py-2 rounded-full bg-red-500/20 border border-red-500/50 backdrop-blur-md text-red-400 text-sm font-bold tracking-widest flex items-center gap-2 z-20 pointer-events-none">
+              <div className="absolute top-4 left-4 px-4 py-2 rounded-full bg-red-500/20 border border-red-500/50 backdrop-blur-md text-red-400 text-sm font-bold tracking-widest flex items-center gap-2 z-10 pointer-events-none">
                 <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
                 REC {recordingTimeLeft}s
               </div>
@@ -446,7 +446,7 @@ export default function DashboardPage() {
                 opacity: isPeaceDetected ? 1 : 0,
                 scale: isPeaceDetected ? 1 : 0.8,
               }}
-              className="absolute top-6 right-6 px-4 py-2 rounded-full bg-emerald-500/20 border border-emerald-500/50 backdrop-blur-md text-emerald-400 text-sm font-bold tracking-widest flex items-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.3)] z-20 pointer-events-none"
+              className="absolute top-4 right-4 px-4 py-2 rounded-full bg-emerald-500/20 border border-emerald-500/50 backdrop-blur-md text-emerald-400 text-sm font-bold tracking-widest flex items-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.3)] z-10 pointer-events-none"
             >
               <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_10px_rgba(52,211,153,1)]" />
               PEACE DETECTED
