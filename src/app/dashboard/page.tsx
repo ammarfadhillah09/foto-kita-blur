@@ -17,6 +17,9 @@ import {
   X,
   Timer,
   Menu,
+  Palette,
+  Tv,
+  Gamepad2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -46,10 +49,23 @@ const RESOLUTION_OPTIONS = [
 ];
 const FPS_OPTIONS = [15, 30, 60];
 
+const DAISY_THEMES = [
+  { value: 'dracula', label: 'Default' },
+  { value: 'retro', label: 'Retro' },
+  { value: 'synthwave', label: 'Pixel' },
+] as const;
+type DaisyTheme = (typeof DAISY_THEMES)[number]['value'];
+
 export default function DashboardPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [selectedResolution, setSelectedResolution] = useState(RESOLUTION_OPTIONS[2]);
   const [selectedFps, setSelectedFps] = useState(30);
+  const [activeTheme, setActiveTheme] = useState<DaisyTheme>('dracula');
+
+  // Apply DaisyUI theme to the root <html> element
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', activeTheme);
+  }, [activeTheme]);
 
   const [autoBlur, setAutoBlur] = useState(true);
   const [isPeaceDetected, setIsPeaceDetected] = useState(false);
@@ -366,20 +382,106 @@ export default function DashboardPage() {
 
   const shouldBlur = isPeaceDetected && autoBlur;
 
+  // Theme styling helpers
+  const getRootClasses = () => {
+    if (activeTheme === 'synthwave') return 'bg-[#FFB703] font-pixel text-black';
+    if (activeTheme === 'retro') return 'bg-[#EAE0D5] font-retro text-[#3E3228]';
+    return 'bg-[#0B1120] font-sans text-white';
+  };
+
+  const getContainerClasses = () => {
+    if (activeTheme === 'synthwave') return 'bg-white rounded-none border-4 border-black shadow-[6px_6px_0px_0px_#000]';
+    if (activeTheme === 'retro') return 'bg-[#EAE0D5] rounded-none border-2 border-[#3E3228] shadow-none';
+    return 'bg-slate-900/50 backdrop-blur-md border border-slate-800 rounded-2xl shadow-xl';
+  };
+
+  const getSidebarClasses = () => {
+    if (activeTheme === 'synthwave') return 'bg-white rounded-none border-t-4 md:border-t-0 md:border-r-4 border-black z-50';
+    if (activeTheme === 'retro') return 'bg-[#EAE0D5] border-t-2 md:border-t-0 md:border-r-2 border-[#3E3228] z-50';
+    return 'bg-slate-900/50 backdrop-blur-md border-t md:border-t-0 md:border-r border-slate-800 z-50';
+  };
+
+  const getButtonPrimaryClasses = () => {
+    if (activeTheme === 'synthwave') return 'bg-[#06D6A0] text-black border-4 border-black shadow-[4px_4px_0px_0px_#000] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none rounded-none';
+    if (activeTheme === 'retro') return 'bg-[#C6AC8F] text-[#3E3228] border border-[#3E3228] rounded-sm active:scale-95';
+    return 'bg-emerald-500 hover:bg-emerald-400 text-white rounded-full font-semibold transition-all active:scale-95';
+  };
+  
+  const getButtonDangerClasses = () => {
+    if (activeTheme === 'synthwave') return 'bg-[#EF476F] text-black border-4 border-black shadow-[4px_4px_0px_0px_#000] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none rounded-none';
+    if (activeTheme === 'retro') return 'bg-[#C6AC8F] text-[#3E3228] border border-[#3E3228] rounded-sm active:scale-95';
+    return 'bg-rose-500 hover:bg-rose-400 text-white rounded-full font-semibold transition-all active:scale-95';
+  };
+
+  const getButtonSecondaryClasses = () => {
+    if (activeTheme === 'synthwave') return 'bg-white text-black border-4 border-black shadow-[4px_4px_0px_0px_#000] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none rounded-none';
+    if (activeTheme === 'retro') return 'bg-transparent text-[#3E3228] border border-[#3E3228] rounded-sm hover:bg-[#3E3228]/5 active:scale-95';
+    return 'bg-slate-800 text-white border border-slate-700 rounded-xl hover:bg-slate-700 active:scale-95';
+  };
+
+  const getSelectWrapperClasses = () => {
+    if (activeTheme === 'synthwave') return 'bg-white border-4 border-black rounded-none text-black';
+    if (activeTheme === 'retro') return 'bg-[#C6AC8F] border border-[#3E3228] rounded-sm text-[#3E3228]';
+    return 'bg-slate-800 border border-slate-700 rounded-xl text-white';
+  };
+
+  const getTextPrimaryClasses = () => {
+    if (activeTheme === 'synthwave') return 'text-black';
+    if (activeTheme === 'retro') return 'text-[#3E3228]';
+    return 'text-white';
+  };
+  
+  const getTextSecondaryClasses = () => {
+    if (activeTheme === 'synthwave') return 'text-black/70';
+    if (activeTheme === 'retro') return 'text-[#3E3228]/70';
+    return 'text-slate-400';
+  };
+
+  const getIconContainerClasses = () => {
+    if (activeTheme === 'synthwave') return 'bg-[#06D6A0] border-4 border-black text-black rounded-none shadow-[4px_4px_0px_0px_#000]';
+    if (activeTheme === 'retro') return 'bg-[#C6AC8F] border border-[#3E3228] text-[#3E3228] rounded-sm';
+    return 'bg-emerald-500/20 text-emerald-400 rounded-xl border border-emerald-500/30';
+  };
+
+  const getBadgeDangerClasses = () => {
+    if (activeTheme === 'synthwave') return 'bg-[#EF476F] border-4 border-black text-black rounded-none shadow-[4px_4px_0px_0px_#000]';
+    if (activeTheme === 'retro') return 'bg-[#EAE0D5] border-2 border-[#3E3228] text-[#3E3228] rounded-sm';
+    return 'bg-rose-500/20 border border-rose-500/50 text-rose-400 rounded-full';
+  };
+
+  const getBadgeSuccessClasses = () => {
+    if (activeTheme === 'synthwave') return 'bg-[#06D6A0] border-4 border-black text-black rounded-none shadow-[4px_4px_0px_0px_#000]';
+    if (activeTheme === 'retro') return 'bg-[#EAE0D5] border-2 border-[#3E3228] text-[#3E3228] rounded-sm';
+    return 'bg-emerald-500/20 border border-emerald-500/50 text-emerald-400 rounded-full shadow-[0_0_20px_rgba(16,185,129,0.3)]';
+  };
+  
+  const getWarningBannerClasses = () => {
+    if (activeTheme === 'synthwave') return 'bg-[#FFB703] border-4 border-black text-black rounded-none shadow-[4px_4px_0px_0px_#000]';
+    if (activeTheme === 'retro') return 'bg-[#EAE0D5] border-2 border-[#3E3228] text-[#3E3228] rounded-sm';
+    return 'bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-xl';
+  };
+
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-gray-950 overflow-hidden relative">
+    <div className={`min-h-screen flex flex-col md:flex-row overflow-hidden relative transition-colors duration-300 ${getRootClasses()}`}>
+      {/* Full Window CRT Overlay for Retro Theme */}
+      {activeTheme === 'retro' && (
+        <div 
+          className="fixed inset-0 pointer-events-none z-[100] mix-blend-overlay opacity-30" 
+          style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(0,0,0,0.4) 1px, rgba(0,0,0,0.4) 2px)' }} 
+        />
+      )}
       {/* Sidebar (Desktop) / Bottom Nav (Mobile) */}
-      <nav className={`fixed md:relative bottom-0 w-full md:h-screen glass-panel border-t md:border-t-0 md:border-r border-white/10 z-50 flex md:flex-col justify-between transition-all duration-300 ease-in-out pb-safe ${
+      <nav className={`fixed md:relative bottom-0 w-full md:h-screen flex md:flex-col justify-between transition-all duration-300 ease-in-out pb-safe ${getSidebarClasses()} ${
         isSidebarOpen 
           ? "md:w-64 translate-y-0 md:translate-x-0 p-4 md:p-6" 
           : "md:w-0 translate-y-0 md:-translate-x-full md:opacity-0 p-4 md:p-0 md:overflow-hidden"
       }`}>
         <div className="flex md:flex-col gap-8 md:gap-12 w-full h-full justify-around md:justify-start">
           <div className="hidden md:flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
-              <Camera className="w-6 h-6 text-white" />
+            <div className={`w-10 h-10 flex items-center justify-center ${getIconContainerClasses()}`}>
+              <Camera className="w-6 h-6" />
             </div>
-            <span className="text-xl font-bold tracking-tight text-white">
+            <span className={`text-xl font-bold tracking-tight ${getTextPrimaryClasses()}`}>
               Foto Kita Blur
             </span>
           </div>
@@ -400,10 +502,10 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="hidden md:block mt-auto pt-8 border-t border-white/10">
+        <div className="hidden md:block mt-auto pt-8 border-t border-base-content/10">
           <Link
             href="/"
-            className="flex items-center gap-3 text-gray-400 hover:text-white transition-colors w-full px-3 py-2 rounded-lg hover:bg-white/5"
+            className={`flex items-center gap-3 transition-colors w-full px-3 py-2 rounded-lg ${getTextSecondaryClasses()} hover:${getTextPrimaryClasses()} hover:bg-black/5`}
           >
             <ArrowLeft className="w-5 h-5" />
             <span className="font-medium">Back</span>
@@ -414,30 +516,30 @@ export default function DashboardPage() {
       {/* Main Content */}
       <main className="flex-1 p-4 md:p-8 lg:p-12 mb-20 md:mb-0 relative overflow-hidden transition-all duration-300">
         {/* Background ambient light */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full bg-emerald-500/5 blur-[150px] pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full bg-primary/5 blur-[150px] pointer-events-none" />
 
         <div className="max-w-5xl mx-auto h-full flex flex-col items-center justify-center">
           {/* Header */}
           <div className="w-full flex justify-start items-center mb-8 relative z-10 gap-4">
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="hidden md:flex p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white transition-colors"
+              className={`hidden md:flex p-2 rounded-xl border transition-colors ${getButtonSecondaryClasses()}`}
               title="Toggle Sidebar"
             >
               <Menu className="w-6 h-6" />
             </button>
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">
+              <h1 className={`text-2xl md:text-3xl font-bold mb-1 ${getTextPrimaryClasses()}`}>
                 Live Feed
               </h1>
-              <p className="text-sm text-gray-400">
+              <p className={`text-sm ${getTextSecondaryClasses()}`}>
                 Position your camera and show a peace sign to auto-blur.
               </p>
             </div>
           </div>
 
           {/* Camera Feed Container */}
-          <div className="w-full aspect-[3/4] sm:aspect-[4/3] md:aspect-video bg-gray-900 rounded-3xl border border-white/10 relative overflow-hidden shadow-2xl shadow-black/50 z-10">
+          <div className={`w-full aspect-[3/4] sm:aspect-[4/3] md:aspect-video relative overflow-hidden z-10 transition-all duration-300 ${getContainerClasses()}`}>
             <video ref={videoRef} autoPlay playsInline muted webkit-playsinline="true" hidden className="hidden" />
 
             <canvas
@@ -447,12 +549,12 @@ export default function DashboardPage() {
 
             {/* Placeholder shown when camera is off */}
             {!isCameraActive && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-600">
+              <div className={`absolute inset-0 flex flex-col items-center justify-center ${getTextSecondaryClasses()}`}>
                 <div
                   className="absolute inset-0 opacity-20"
                   style={{
                     backgroundImage:
-                      "linear-gradient(#ffffff11 1px, transparent 1px), linear-gradient(90deg, #ffffff11 1px, transparent 1px)",
+                      "linear-gradient(currentColor 1px, transparent 1px), linear-gradient(90deg, currentColor 1px, transparent 1px)",
                     backgroundSize: "40px 40px",
                   }}
                 />
@@ -461,14 +563,35 @@ export default function DashboardPage() {
               </div>
             )}
 
+            {/* Conditional Decorative Elements */}
+            {activeTheme === 'retro' && (
+              <div className="absolute bottom-4 left-4 z-20 p-2 bg-[#EAE0D5] rounded-sm border border-[#3E3228] text-[#3E3228] pointer-events-none">
+                <Tv className="w-5 h-5" />
+              </div>
+            )}
+
+            {activeTheme === 'synthwave' && (
+              <>
+                <div className="absolute inset-0 pointer-events-none z-20 shadow-[inset_0_0_0_4px_#000] opacity-80 m-1.5" />
+                <div className="absolute bottom-4 left-4 z-20 p-2 bg-white border-4 border-black text-black shadow-[4px_4px_0px_0px_#000] pointer-events-none">
+                  <Gamepad2 className="w-5 h-5" />
+                </div>
+                {/* 4 decorative pixel corners */}
+                <div className="absolute top-0 left-0 w-8 h-8 border-t-[6px] border-l-[6px] border-black pointer-events-none z-20" />
+                <div className="absolute top-0 right-0 w-8 h-8 border-t-[6px] border-r-[6px] border-black pointer-events-none z-20" />
+                <div className="absolute bottom-0 left-0 w-8 h-8 border-b-[6px] border-l-[6px] border-black pointer-events-none z-20" />
+                <div className="absolute bottom-0 right-0 w-8 h-8 border-b-[6px] border-r-[6px] border-black pointer-events-none z-20" />
+              </>
+            )}
+
             {/* Model loading overlay */}
             {isModelLoading && isCameraActive && (
-              <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-gray-900/80 backdrop-blur-sm">
-                <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4" />
-                <p className="text-sm font-semibold text-emerald-400 tracking-wide">
+              <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/40 backdrop-blur-sm">
+                <div className="w-10 h-10 border-4 border-white border-t-transparent rounded-full animate-spin mb-4" />
+                <p className="text-sm font-semibold text-white tracking-wide">
                   Initializing AI Model…
                 </p>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-white/70 mt-1">
                   This may take a few seconds on first load
                 </p>
               </div>
@@ -476,8 +599,8 @@ export default function DashboardPage() {
 
             {/* Recording indicator */}
             {isRecording && (
-              <div className="absolute top-4 left-4 px-4 py-2 rounded-full bg-red-500/20 border border-red-500/50 backdrop-blur-md text-red-400 text-sm font-bold tracking-widest flex items-center gap-2 z-10 pointer-events-none">
-                <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
+              <div className={`absolute top-4 left-4 px-4 py-2 backdrop-blur-md text-sm font-bold tracking-widest flex items-center gap-2 z-10 pointer-events-none ${getBadgeDangerClasses()}`}>
+                <div className={`w-2.5 h-2.5 rounded-full animate-pulse ${activeTheme === 'synthwave' || activeTheme === 'retro' ? 'bg-current' : 'bg-error'}`} />
                 REC {recordingTimeLeft}s
               </div>
             )}
@@ -489,23 +612,23 @@ export default function DashboardPage() {
                 opacity: isPeaceDetected ? 1 : 0,
                 scale: isPeaceDetected ? 1 : 0.8,
               }}
-              className="absolute top-4 right-4 px-4 py-2 rounded-full bg-emerald-500/20 border border-emerald-500/50 backdrop-blur-md text-emerald-400 text-sm font-bold tracking-widest flex items-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.3)] z-10 pointer-events-none"
+              className={`absolute top-4 right-4 px-4 py-2 backdrop-blur-md text-sm font-bold tracking-widest flex items-center gap-2 z-10 pointer-events-none ${getBadgeSuccessClasses()}`}
             >
-              <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_10px_rgba(52,211,153,1)]" />
+              <div className={`w-2.5 h-2.5 rounded-full animate-pulse ${activeTheme === 'synthwave' || activeTheme === 'retro' ? 'bg-current' : 'bg-success shadow-[0_0_10px_rgba(52,211,153,1)]'}`} />
               PEACE DETECTED
             </motion.div>
           </div>
 
           {/* Controls Row */}
-          <div className="w-full mt-8 flex flex-col gap-6 relative z-10 bg-white/5 border border-white/10 p-4 md:p-6 rounded-2xl backdrop-blur-xl">
+          <div className={`w-full mt-8 flex flex-col gap-6 relative z-10 p-4 md:p-6 transition-all duration-300 ${getContainerClasses()}`}>
             <div className="flex flex-col md:flex-row items-center justify-between gap-6">
               <div className="flex flex-wrap gap-4 items-center">
                 {/* Start / Stop Camera */}
                 <button
-                  className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all shadow-lg active:scale-95 ${
+                  className={`flex items-center gap-2 px-6 py-3 font-bold transition-all ${
                     isCameraActive
-                      ? "bg-red-500 hover:bg-red-400 text-white shadow-red-500/20"
-                      : "bg-emerald-500 hover:bg-emerald-400 text-gray-950 shadow-emerald-500/20"
+                      ? getButtonDangerClasses()
+                      : getButtonPrimaryClasses()
                   }`}
                   onClick={isCameraActive ? stopCamera : startCamera}
                   disabled={isLoading}
@@ -526,24 +649,24 @@ export default function DashboardPage() {
 
                 {/* Record / Stop Recording */}
                 <button
-                  className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all active:scale-95 ${
+                  className={`flex items-center gap-2 px-6 py-3 font-bold transition-all disabled:opacity-40 disabled:pointer-events-none ${
                     isRecording
-                      ? "bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 text-red-400"
-                      : "bg-white/10 hover:bg-white/20 border border-white/10 text-white"
-                  } disabled:opacity-40 disabled:pointer-events-none`}
+                      ? getButtonDangerClasses()
+                      : getButtonSecondaryClasses()
+                  }`}
                   onClick={isRecording ? stopRecording : startRecording}
                   disabled={!isCameraActive || isModelLoading}
                 >
                   {isRecording ? (
                     <Square className="w-4 h-4 fill-current" />
                   ) : (
-                    <Circle className="w-5 h-5 fill-red-500 text-red-500" />
+                    <Circle className="w-5 h-5 fill-error text-error" />
                   )}
                   {isRecording ? "Stop Recording" : "Record Video"}
                 </button>
 
                 {/* Duration Selector */}
-                <div className="flex items-center gap-1 px-1 py-1 rounded-xl bg-black/30 border border-white/5">
+                <div className={`flex items-center gap-1 px-1 py-1 ${getSelectWrapperClasses()}`}>
                   {DURATION_OPTIONS.map((d) => (
                     <button
                       key={d}
@@ -551,8 +674,8 @@ export default function DashboardPage() {
                       disabled={isRecording}
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all disabled:opacity-50 ${
                         selectedDuration === d
-                          ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-                          : "text-gray-400 hover:text-white"
+                          ? activeTheme === 'synthwave' ? 'bg-black text-white' : activeTheme === 'retro' ? 'bg-[#3E3228] text-[#EAE0D5]' : 'bg-primary/20 text-primary border border-primary/30'
+                          : "opacity-70 hover:opacity-100"
                       }`}
                     >
                       <Timer className="w-3 h-3" />
@@ -564,8 +687,8 @@ export default function DashboardPage() {
 
               <div className="flex flex-wrap gap-4 items-center justify-center md:justify-end">
                 {/* Resolution Select */}
-                <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-black/20 border border-white/5">
-                  <span className="text-xs text-gray-400 font-medium hidden sm:inline">Res:</span>
+                <div className={`flex items-center gap-2 px-3 py-2 ${getSelectWrapperClasses()}`}>
+                  <span className="text-xs font-medium hidden sm:inline opacity-70">Res:</span>
                   <select
                     value={selectedResolution.label}
                     onChange={(e) => {
@@ -573,10 +696,10 @@ export default function DashboardPage() {
                       if (res) setSelectedResolution(res);
                     }}
                     disabled={isRecording}
-                    className="bg-transparent text-white text-sm font-medium outline-none cursor-pointer disabled:opacity-50"
+                    className="bg-transparent text-sm font-medium outline-none cursor-pointer disabled:opacity-50"
                   >
                     {RESOLUTION_OPTIONS.map((r) => (
-                      <option key={r.label} value={r.label} className="bg-gray-900">
+                      <option key={r.label} value={r.label} className="bg-white text-black">
                         {r.label}
                       </option>
                     ))}
@@ -584,30 +707,46 @@ export default function DashboardPage() {
                 </div>
                 
                 {/* FPS Select */}
-                <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-black/20 border border-white/5">
-                  <span className="text-xs text-gray-400 font-medium hidden sm:inline">FPS:</span>
+                <div className={`flex items-center gap-2 px-3 py-2 ${getSelectWrapperClasses()}`}>
+                  <span className="text-xs font-medium hidden sm:inline opacity-70">FPS:</span>
                   <select
                     value={selectedFps}
                     onChange={(e) => setSelectedFps(Number(e.target.value))}
                     disabled={isRecording}
-                    className="bg-transparent text-white text-sm font-medium outline-none cursor-pointer disabled:opacity-50"
+                    className="bg-transparent text-sm font-medium outline-none cursor-pointer disabled:opacity-50"
                   >
                     {FPS_OPTIONS.map((f) => (
-                      <option key={f} value={f} className="bg-gray-900">
+                      <option key={f} value={f} className="bg-white text-black">
                         {f}
                       </option>
                     ))}
                   </select>
                 </div>
 
+                {/* Theme Select */}
+                <div className={`flex items-center gap-2 px-3 py-2 ${getSelectWrapperClasses()}`}>
+                  <Palette className="w-4 h-4 opacity-70" />
+                  <select
+                    value={activeTheme}
+                    onChange={(e) => setActiveTheme(e.target.value as DaisyTheme)}
+                    className="bg-transparent text-sm font-medium outline-none cursor-pointer"
+                  >
+                    {DAISY_THEMES.map((t) => (
+                      <option key={t.value} value={t.value} className="bg-white text-black">
+                        {t.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
                 {/* Auto-Blur Toggle Switch */}
-                <div className="flex items-center gap-4 px-4 py-2 rounded-xl bg-black/20 border border-white/5">
+                <div className={`flex items-center gap-4 px-4 py-2 ${getSelectWrapperClasses()}`}>
                   <div className="flex items-center gap-2">
                     <Sparkles
-                      className={`w-4 h-4 ${autoBlur ? "text-emerald-400" : "text-gray-500"}`}
+                      className={`w-4 h-4 ${autoBlur ? "opacity-100" : "opacity-40"}`}
                     />
                     <span
-                      className={`text-sm font-medium ${autoBlur ? "text-white" : "text-gray-400"}`}
+                      className={`text-sm font-medium ${autoBlur ? "opacity-100" : "opacity-60"}`}
                     >
                       Auto-Blur Mode
                     </span>
@@ -615,7 +754,9 @@ export default function DashboardPage() {
                   <button
                     onClick={() => setAutoBlur(!autoBlur)}
                     className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none ${
-                      autoBlur ? "bg-emerald-500" : "bg-gray-600"
+                      autoBlur 
+                        ? activeTheme === 'synthwave' ? 'bg-black' : activeTheme === 'retro' ? 'bg-[#3E3228]' : 'bg-emerald-500'
+                        : "bg-black/30"
                     }`}
                   >
                     <span
@@ -629,12 +770,12 @@ export default function DashboardPage() {
             </div>
 
             {/* Explanatory text */}
-            <div className="space-y-2 pt-4 border-t border-white/5">
-              <p className="text-xs text-gray-500">
-                Select a duration and click <span className="text-gray-300 font-medium">Record</span>. The AI will blur your feed when you show a peace sign. You can stop the recording early at any time.
+            <div className={`space-y-2 pt-4 border-t ${activeTheme === 'synthwave' ? 'border-black/10' : activeTheme === 'retro' ? 'border-[#3E3228]/10' : 'border-slate-700/50'}`}>
+              <p className={`text-xs ${getTextSecondaryClasses()}`}>
+                Select a duration and click <span className="font-medium opacity-100">Record</span>. The AI will blur your feed when you show a peace sign. You can stop the recording early at any time.
               </p>
-              <div className="bg-amber-500/10 border border-amber-500/20 p-3 rounded-xl">
-                <p className="text-xs text-amber-400/90 leading-relaxed font-medium">
+              <div className={`p-3 ${getWarningBannerClasses()}`}>
+                <p className="text-xs leading-relaxed font-medium">
                   ⚠️ Videos are saved temporarily in your browser&apos;s memory and will be permanently deleted upon reloading. Performance Tip: All AI processing runs locally. If you experience lag, please lower the Resolution and FPS settings.
                 </p>
               </div>
@@ -650,13 +791,13 @@ export default function DashboardPage() {
             initial={{ opacity: 0, y: 50, x: "-50%" }}
             animate={{ opacity: 1, y: 0, x: "-50%" }}
             exit={{ opacity: 0, y: 50, x: "-50%" }}
-            className="fixed bottom-24 md:bottom-8 left-1/2 z-[100] flex items-center gap-3 px-5 py-3 rounded-xl bg-emerald-500/20 border border-emerald-500/40 backdrop-blur-xl text-emerald-300 text-sm font-medium shadow-lg shadow-emerald-900/20"
+            className="fixed bottom-24 md:bottom-8 left-1/2 z-[100] flex items-center gap-3 px-5 py-3 rounded-xl bg-success/20 border border-success/40 backdrop-blur-xl text-success text-sm font-medium shadow-lg shadow-success/20"
           >
-            <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+            <CheckCircle2 className="w-5 h-5 text-success shrink-0" />
             {toast.message}
             <button
               onClick={() => setToast({ message: "", visible: false })}
-              className="ml-2 text-emerald-400/60 hover:text-emerald-300 transition-colors"
+              className="ml-2 text-success/60 hover:text-success transition-colors"
             >
               <X className="w-4 h-4" />
             </button>
@@ -683,11 +824,11 @@ function NavItem({
       href={href}
       className={`flex md:w-full items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
         active
-          ? "bg-emerald-500/15 text-emerald-400 font-medium"
-          : "text-gray-400 hover:text-white hover:bg-white/5"
+          ? "bg-primary/15 text-primary font-medium"
+          : "text-base-content/60 hover:text-base-content hover:bg-base-content/5"
       }`}
     >
-      <div className={`${active ? "text-emerald-400" : ""}`}>{icon}</div>
+      <div className={`${active ? "text-primary" : ""}`}>{icon}</div>
       <span className="hidden md:block text-sm">{label}</span>
     </Link>
   );
