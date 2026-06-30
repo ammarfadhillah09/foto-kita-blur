@@ -27,6 +27,7 @@ import {
   FilesetResolver,
 } from "@mediapipe/tasks-vision";
 import { useGalleryStore } from "@/store/useGalleryStore";
+import { useTheme, DAISY_THEMES, DaisyTheme } from "@/context/ThemeContext";
 
 // MediaPipe hand landmark indices
 const INDEX_TIP = 8;
@@ -49,23 +50,12 @@ const RESOLUTION_OPTIONS = [
 ];
 const FPS_OPTIONS = [15, 30, 60];
 
-const DAISY_THEMES = [
-  { value: 'dracula', label: 'Default' },
-  { value: 'retro', label: 'Retro' },
-  { value: 'synthwave', label: 'Pixel' },
-] as const;
-type DaisyTheme = (typeof DAISY_THEMES)[number]['value'];
 
 export default function DashboardPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [selectedResolution, setSelectedResolution] = useState(RESOLUTION_OPTIONS[2]);
   const [selectedFps, setSelectedFps] = useState(30);
-  const [activeTheme, setActiveTheme] = useState<DaisyTheme>('dracula');
-
-  // Apply DaisyUI theme to the root <html> element
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', activeTheme);
-  }, [activeTheme]);
+  const { activeTheme, setActiveTheme } = useTheme();
 
   const [autoBlur, setAutoBlur] = useState(true);
   const [isPeaceDetected, setIsPeaceDetected] = useState(false);
