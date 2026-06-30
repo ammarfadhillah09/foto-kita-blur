@@ -16,6 +16,7 @@ import {
   CheckCircle2,
   X,
   Timer,
+  Menu,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -37,7 +38,19 @@ const PINKY_PIP = 18;
 const DURATION_OPTIONS = [15, 30, 45] as const;
 type DurationOption = (typeof DURATION_OPTIONS)[number];
 
+const RESOLUTION_OPTIONS = [
+  { label: "360p", width: 640, height: 360 },
+  { label: "480p", width: 854, height: 480 },
+  { label: "720p", width: 1280, height: 720 },
+  { label: "1080p", width: 1920, height: 1080 },
+];
+const FPS_OPTIONS = [15, 30, 60];
+
 export default function DashboardPage() {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [selectedResolution, setSelectedResolution] = useState(RESOLUTION_OPTIONS[2]);
+  const [selectedFps, setSelectedFps] = useState(30);
+
   const [autoBlur, setAutoBlur] = useState(true);
   const [isPeaceDetected, setIsPeaceDetected] = useState(false);
   const [isCameraActive, setIsCameraActive] = useState(false);
@@ -199,8 +212,17 @@ export default function DashboardPage() {
   const startCamera = useCallback(async () => {
     setIsLoading(true);
     try {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((t) => t.stop());
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } },
+        video: { 
+          facingMode: "user", 
+          width: { ideal: selectedResolution.width }, 
+          height: { ideal: selectedResolution.height },
+          frameRate: { ideal: selectedFps }
+        },
       });
       streamRef.current = stream;
 
@@ -216,7 +238,14 @@ export default function DashboardPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [predict]);
+  }, [predict, selectedResolution, selectedFps]);
+
+  useEffect(() => {
+    if (isCameraActive && !isRecording) {
+      startCamera();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedResolution, selectedFps]);
 
   const stopCamera = useCallback(() => {
     // Stop any active recording first
@@ -338,9 +367,13 @@ export default function DashboardPage() {
   const shouldBlur = isPeaceDetected && autoBlur;
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-gray-950">
+    <div className="min-h-screen flex flex-col md:flex-row bg-gray-950 overflow-hidden relative">
       {/* Sidebar (Desktop) / Bottom Nav (Mobile) */}
-      <nav className="fixed md:relative bottom-0 w-full md:w-64 md:h-screen glass-panel border-t md:border-t-0 md:border-r border-white/10 z-50 flex md:flex-col justify-between p-4 md:p-6 pb-safe">
+      <nav className={`fixed md:relative bottom-0 w-full md:h-screen glass-panel border-t md:border-t-0 md:border-r border-white/10 z-50 flex md:flex-col justify-between transition-all duration-300 ease-in-out pb-safe ${
+        isSidebarOpen 
+          ? "md:w-64 translate-y-0 md:translate-x-0 p-4 md:p-6" 
+          : "md:w-0 translate-y-0 md:-translate-x-full md:opacity-0 p-4 md:p-0 md:overflow-hidden"
+      }`}>
         <div className="flex md:flex-col gap-8 md:gap-12 w-full h-full justify-around md:justify-start">
           <div className="hidden md:flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
@@ -379,13 +412,20 @@ export default function DashboardPage() {
       </nav>
 
       {/* Main Content */}
-      <main className="flex-1 p-4 md:p-8 lg:p-12 mb-20 md:mb-0 relative overflow-hidden">
+      <main className="flex-1 p-4 md:p-8 lg:p-12 mb-20 md:mb-0 relative overflow-hidden transition-all duration-300">
         {/* Background ambient light */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full bg-emerald-500/5 blur-[150px] pointer-events-none" />
 
         <div className="max-w-5xl mx-auto h-full flex flex-col items-center justify-center">
           {/* Header */}
-          <div className="w-full flex justify-between items-center mb-8 relative z-10">
+          <div className="w-full flex justify-start items-center mb-8 relative z-10 gap-4">
+            <button
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="hidden md:flex p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white transition-colors"
+              title="Toggle Sidebar"
+            >
+              <Menu className="w-6 h-6" />
+            </button>
             <div>
               <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">
                 Live Feed
@@ -522,42 +562,80 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {/* Auto-Blur Toggle Switch */}
-              <div className="flex items-center gap-4 px-4 py-2 rounded-xl bg-black/20 border border-white/5">
-                <div className="flex items-center gap-2">
-                  <Sparkles
-                    className={`w-4 h-4 ${autoBlur ? "text-emerald-400" : "text-gray-500"}`}
-                  />
-                  <span
-                    className={`text-sm font-medium ${autoBlur ? "text-white" : "text-gray-400"}`}
+              <div className="flex flex-wrap gap-4 items-center justify-center md:justify-end">
+                {/* Resolution Select */}
+                <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-black/20 border border-white/5">
+                  <span className="text-xs text-gray-400 font-medium hidden sm:inline">Res:</span>
+                  <select
+                    value={selectedResolution.label}
+                    onChange={(e) => {
+                      const res = RESOLUTION_OPTIONS.find((r) => r.label === e.target.value);
+                      if (res) setSelectedResolution(res);
+                    }}
+                    disabled={isRecording}
+                    className="bg-transparent text-white text-sm font-medium outline-none cursor-pointer disabled:opacity-50"
                   >
-                    Auto-Blur Mode
-                  </span>
+                    {RESOLUTION_OPTIONS.map((r) => (
+                      <option key={r.label} value={r.label} className="bg-gray-900">
+                        {r.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
-                <button
-                  onClick={() => setAutoBlur(!autoBlur)}
-                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none ${
-                    autoBlur ? "bg-emerald-500" : "bg-gray-600"
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform shadow-sm ${
-                      autoBlur ? "translate-x-6" : "translate-x-1"
+                
+                {/* FPS Select */}
+                <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-black/20 border border-white/5">
+                  <span className="text-xs text-gray-400 font-medium hidden sm:inline">FPS:</span>
+                  <select
+                    value={selectedFps}
+                    onChange={(e) => setSelectedFps(Number(e.target.value))}
+                    disabled={isRecording}
+                    className="bg-transparent text-white text-sm font-medium outline-none cursor-pointer disabled:opacity-50"
+                  >
+                    {FPS_OPTIONS.map((f) => (
+                      <option key={f} value={f} className="bg-gray-900">
+                        {f}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Auto-Blur Toggle Switch */}
+                <div className="flex items-center gap-4 px-4 py-2 rounded-xl bg-black/20 border border-white/5">
+                  <div className="flex items-center gap-2">
+                    <Sparkles
+                      className={`w-4 h-4 ${autoBlur ? "text-emerald-400" : "text-gray-500"}`}
+                    />
+                    <span
+                      className={`text-sm font-medium ${autoBlur ? "text-white" : "text-gray-400"}`}
+                    >
+                      Auto-Blur Mode
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => setAutoBlur(!autoBlur)}
+                    className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none ${
+                      autoBlur ? "bg-emerald-500" : "bg-gray-600"
                     }`}
-                  />
-                </button>
+                  >
+                    <span
+                      className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform shadow-sm ${
+                        autoBlur ? "translate-x-6" : "translate-x-1"
+                      }`}
+                    />
+                  </button>
+                </div>
               </div>
             </div>
 
             {/* Explanatory text */}
-            <div className="space-y-2 pt-2 border-t border-white/5">
+            <div className="space-y-2 pt-4 border-t border-white/5">
               <p className="text-xs text-gray-500">
                 Select a duration and click <span className="text-gray-300 font-medium">Record</span>. The AI will blur your feed when you show a peace sign. You can stop the recording early at any time.
               </p>
-              <div className="flex items-start gap-2 text-amber-400/80">
-                <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
-                <p className="text-xs">
-                  Videos are saved temporarily in your browser&apos;s Gallery. Reloading the page will delete all recordings.
+              <div className="bg-amber-500/10 border border-amber-500/20 p-3 rounded-xl">
+                <p className="text-xs text-amber-400/90 leading-relaxed font-medium">
+                  ⚠️ Videos are saved temporarily in your browser&apos;s memory and will be permanently deleted upon reloading. Performance Tip: All AI processing runs locally. If you experience lag, please lower the Resolution and FPS settings.
                 </p>
               </div>
             </div>
